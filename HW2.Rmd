@@ -1,0 +1,52 @@
+---
+title: "HW2"
+author: "Vivian Xia"
+date: "2024-09-30"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+
+# Read the CSV file
+data <- read.csv("NYC_Transit_Subway_Entrance_And_Exit_Data.csv")
+
+# Select relevant columns
+cleaned_data <- data %>%
+  select("Line","Station.Name", "Station.Latitude", "Station.Longitude", c("Route1":"Route11"),"Entry","Vending", "Entrance.Type","ADA") %>%
+  
+  # Convert Entry to logical (TRUE for "YES", FALSE for "NO")
+  mutate(Entry = ifelse(Entry == "YES", TRUE, FALSE))
+
+# View the data
+View(cleaned_data)
+```
+
+The dataset provides details about NYC subway entrances and exits. Key variables include:Line (Subway line), Station Name(Name of the subway station), Station Latitude/Longitude(Geographical coordinates of the station), Routes Served (Route1 to Route11), Entry(Logical variable indicating whether entry is allowed at a specific entrance), Vending(Indicates whether there are vending machines at the entrance),Entrance Type(e.g. staircase, elevator), ADA(Whether the entrance is ADA-compliant)
+
+So far, I have selected relevant columns from the original data set and converted the Entry variable into a logical format. The resulting dataset has 1868 rows and 19 columns. This dataset can be considered tidy, as each variable has its own column, each observation has its own row, and each value has its own cell.
+
+```{r}
+# Count distinct stations based on the combination of station name and line
+distinct_stations <- cleaned_data %>%
+  distinct(Line,Station.Name) %>%
+  nrow()
+
+distinct_stations
+```
+There are 465 stations.
+
+```{r}
+# Count ADA compliant stations
+ada_compliant_stations <- cleaned_data %>%
+  filter(ADA == TRUE) %>%
+  nrow()
+
+ada_compliant_stations
+```
+There are 468 stations.
