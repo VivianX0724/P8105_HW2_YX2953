@@ -182,3 +182,66 @@ print()
 ```
 The cigarette butts collected by Gwynnda in June 2022 is 18120.
 
+
+
+Problem 3
+
+```{r}
+# Load necessary libraries
+library(readr)
+
+# Read the CSV files
+bakers_df <- read_csv("bakers.csv")
+bakes_df <- read_csv("bakes.csv")
+results_df <- read_csv("results.csv")
+
+# make the data tidy
+results_df <- results_df %>%
+  slice(3:n()) %>% #keep the data from the third row
+  setNames(c("Series", "Episode", "Baker", "Technical", "Result")) 
+
+# make the data consistent
+bakes_df <- bakes_df %>%
+  mutate(Series = as.numeric(Series), Episode = as.numeric(Episode))
+  
+results_df <- results_df %>%
+  mutate(Series = as.numeric(Series), Episode = as.numeric(Episode))
+
+bakers_df <- bakers_df %>%
+  rename(Baker = `Baker Name`) %>%
+  mutate(Series = as.numeric(Series)) %>%
+  mutate(Baker = ifelse(Baker == 'Joanne', 'Jo',Baker))
+
+
+View(bakers_df)
+View(bakes_df)
+View(results_df)
+```
+
+
+```{r}
+# Check the completeness and correctness
+bakers_df <- bakers_df %>%
+  mutate(Baker = word(Baker, 1))
+```
+
+```{r}
+# Check the not matching one
+
+resultbakernumber<- anti_join(results_df, bakers_df, by = c("Series", "Baker")) |>
+  nrow()
+
+print(resultbakernumber)
+
+bakerresultnumber <- anti_join(bakers_df, results_df, by = c("Series", "Baker")) |>
+  nrow()
+
+print(bakerresultnumber)
+```
+
+```{r}
+# Merge the bakers and the results
+
+
+```
+
