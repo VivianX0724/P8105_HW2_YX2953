@@ -9,6 +9,8 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Problem 1
+
 ```{r}
 # Load necessary libraries
 library(dplyr)
@@ -50,3 +52,133 @@ ada_compliant_stations <- cleaned_data %>%
 ada_compliant_stations
 ```
 There are 468 stations.
+
+```{r}
+# Calculate the proportion of entrances without vending that allow entry
+proportion_without_vending <- cleaned_data %>%
+  filter(Vending == "NO") %>%
+  summarise(proportion = mean(Entry))
+
+proportion_without_vending
+```
+The proportion of entrances without vending is approximately 37.7%.
+
+```{r}
+library(tidyr)
+   cleaned_data <- cleaned_data %>%
+     mutate(across(Route1:Route11, as.character))
+   
+# Transfer data to long character format
+routes_data <- cleaned_data %>%
+  pivot_longer(Route1:Route11, names_to = "RouteNumber", values_to = "Route")
+routes_data <- routes_data %>%
+  filter(!is.na(Route))
+
+# Check the reformatted data
+View(routes_data)
+```
+
+```{r}
+# Count distinct stations serving the A train
+a_train_stations <- routes_data %>%
+  filter(Route == "A") %>%
+  distinct(Line, Station.Name) %>%
+  nrow()
+
+a_train_stations
+```
+There are 60 distinct stations serving the A train,
+
+```{r}
+# Count ADA compliant stations serving the A train
+ada_compliant_a_train <- routes_data %>%
+  filter(Route == "A", ADA == TRUE) %>%
+  distinct(Line, Station.Name) %>%
+  nrow()
+
+ada_compliant_a_train
+```
+There 17 ADA compliant stations serving the A train.
+
+
+Problem 2
+
+```{r}
+# Load necessary libraries
+library(readxl)
+
+# Read Mr. Trash Wheel sheet
+mr_trash_wheel <- read_excel("202409 Trash Wheel Collection Data 2.xlsx",sheet = "Mr. Trash Wheel", skip = 1)
+
+# Clean the data by selecting relevant columns and renaming them
+mr_trash_wheel_cleaned <- mr_trash_wheel %>%
+ select(Dumpster, Month, Year, Date, 'Weight.tons'= 'Weight (tons)', 'Volume.cubicyards' =     'Volume (cubic yards)', PlasticBottles ='Plastic Bottles' , Polystyrene, CigaretteButts = 'Cigarette Butts', GlassBottles = 'Glass Bottles', PlasticBags = 'Plastic Bags', Wrappers, SportsBalls = 'Sports Balls' ,HomesPowered = 'Homes Powered*', fifteen ='...15', sixteen='...16') %>%
+  
+  # omit rows that do not include dumpster-specific data
+  filter(!is.na(Dumpster)) %>%
+  # round the number of sports balls to the nearest integer and converts the result to an    integer variable
+  mutate(SportsBalls = as.integer(round(SportsBalls))) %>%
+  
+  # add an additional variable to keep track of Trash Wheel
+  mutate(Trash_Wheel = "Mr. Trash Wheel") %>%
+  # transfer year to numerical character
+  mutate(Year = as.numeric(Year))
+
+View(mr_trash_wheel_cleaned)
+```
+
+
+```{r}
+# Read Professor Trash Wheel sheet
+prof_trash_wheel <- read_excel("202409 Trash Wheel Collection Data 2.xlsx", sheet = "Professor Trash Wheel", skip = 1)
+
+# Clean
+prof_trash_wheel_cleaned <- prof_trash_wheel %>%
+  select(Dumpster, Month, Year, Date, 'Weight.tons'= 'Weight (tons)', 'Volume.cubicyards' =     'Volume (cubic yards)', PlasticBottles ='Plastic Bottles' , Polystyrene, CigaretteButts = 'Cigarette Butts', GlassBottles = 'Glass Bottles', PlasticBags = 'Plastic Bags', Wrappers, HomesPowered = 'Homes Powered*') %>%
+  
+# omit rows that do not include dumpster-specific data
+  filter(!is.na(Dumpster)) %>%
+  
+# add an additional variable to keep track of Trash Wheel
+  mutate(Trash_Wheel = "Professor Trash Wheel")
+
+# Repeat for Gwynnda
+gwynnda <- read_excel("202409 Trash Wheel Collection Data 2.xlsx", sheet = "Gwynnda Trash Wheel", skip = 1)
+
+gwynnda_cleaned <- gwynnda %>%
+  select(Dumpster, Month, Year, Date, 'Weight.tons'= 'Weight (tons)', 'Volume.cubicyards' =     'Volume (cubic yards)', PlasticBottles ='Plastic Bottles' , Polystyrene, CigaretteButts = 'Cigarette Butts', PlasticBags = 'Plastic Bags', Wrappers, HomesPowered = 'Homes Powered*') %>%
+  
+filter(!is.na(Dumpster)) %>%
+
+# add an additional variable to keep track of Trash Wheel
+  mutate(Trash_Wheel = "Gwynnda Trash Wheel")
+
+# Combine all data set
+all_trash_wheel_data <- bind_rows(mr_trash_wheel_cleaned,
+                                  prof_trash_wheel_cleaned,
+                                  gwynnda_cleaned)
+
+# Check the combined data set
+View(all_trash_wheel_data)
+```
+
+The `all_trash_wheel_data` combines the data from three different trash wheels of Healthy Harbor company from the year 2014 to 2024, if data is available. The data includes the number of Dumpster, Month, Year, Date, weight, volumes, different categories of trash collected, and homes powered. 
+
+```{r}
+# Total weight collected by Professor Trash Wheel
+total_weight_professor <- all_trash_wheel_data %>%
+  filter(Trash_Wheel == "Professor Trash Wheel") %>%
+  summarise(total_weight = sum(Weight.tons, na.rm = TRUE)) %>%
+print()
+```
+The total weight collected by Professor Trash Wheel is 246.74 tons.
+
+```{r}
+# Cigarette butts collected by Gwynnda in June 2022
+gwynnda_cigarette_june <- all_trash_wheel_data %>%
+  filter(Trash_Wheel == "Gwynnda Trash Wheel", Month == "June", Year == 2022) %>%
+  summarise(total_cig_butts = sum(CigaretteButts, na.rm = TRUE))%>%
+print()
+```
+The cigarette butts collected by Gwynnda in June 2022 is 18120.
+
