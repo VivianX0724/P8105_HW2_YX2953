@@ -64,6 +64,7 @@ proportion_without_vending
 The proportion of entrances without vending is approximately 37.7%.
 
 ```{r}
+
 library(tidyr)
    cleaned_data <- cleaned_data %>%
      mutate(across(Route1:Route11, as.character))
@@ -108,7 +109,7 @@ Problem 2
 library(readxl)
 
 # Read Mr. Trash Wheel sheet
-mr_trash_wheel <- read_excel("202409 Trash Wheel Collection Data 2.xlsx",sheet = "Mr. Trash Wheel", skip = 1)
+mr_trash_wheel <- read_excel("202409 Trash Wheel Collection Data.xlsx",sheet = "Mr. Trash Wheel", skip = 1)
 
 # Clean the data by selecting relevant columns and renaming them
 mr_trash_wheel_cleaned <- mr_trash_wheel %>%
@@ -130,7 +131,7 @@ View(mr_trash_wheel_cleaned)
 
 ```{r}
 # Read Professor Trash Wheel sheet
-prof_trash_wheel <- read_excel("202409 Trash Wheel Collection Data 2.xlsx", sheet = "Professor Trash Wheel", skip = 1)
+prof_trash_wheel <- read_excel("202409 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel", skip = 1)
 
 # Clean
 prof_trash_wheel_cleaned <- prof_trash_wheel %>%
@@ -143,7 +144,7 @@ prof_trash_wheel_cleaned <- prof_trash_wheel %>%
   mutate(Trash_Wheel = "Professor Trash Wheel")
 
 # Repeat for Gwynnda
-gwynnda <- read_excel("202409 Trash Wheel Collection Data 2.xlsx", sheet = "Gwynnda Trash Wheel", skip = 1)
+gwynnda <- read_excel("202409 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel", skip = 1)
 
 gwynnda_cleaned <- gwynnda %>%
   select(Dumpster, Month, Year, Date, 'Weight.tons'= 'Weight (tons)', 'Volume.cubicyards' =     'Volume (cubic yards)', PlasticBottles ='Plastic Bottles' , Polystyrene, CigaretteButts = 'Cigarette Butts', PlasticBags = 'Plastic Bags', Wrappers, HomesPowered = 'Homes Powered*') %>%
@@ -189,6 +190,7 @@ Problem 3
 ```{r}
 # Load necessary libraries
 library(readr)
+library(stringr)
 
 # Read the CSV files
 bakers_df <- read_csv("bakers.csv")
@@ -197,7 +199,7 @@ results_df <- read_csv("results.csv")
 
 # make the data tidy
 results_df <- results_df %>%
-  slice(3:n()) %>% #keep the data from the third row
+  slice(3:n())  %>% #keep the data from the third row
   setNames(c("Series", "Episode", "Baker", "Technical", "Result")) 
 
 # make the data consistent
@@ -210,8 +212,7 @@ results_df <- results_df %>%
 bakers_df <- bakers_df %>%
   rename(Baker = `Baker Name`) %>%
   mutate(Series = as.numeric(Series)) %>%
-  mutate(Baker = ifelse(Baker == 'Joanne', 'Jo',Baker))
-
+  mutate(Baker = ifelse(Baker == 'Joanne', 'Jo', Baker)) 
 
 View(bakers_df)
 View(bakes_df)
@@ -222,26 +223,85 @@ View(results_df)
 ```{r}
 # Check the completeness and correctness
 bakers_df <- bakers_df %>%
-  mutate(Baker = word(Baker, 1))
+  mutate(Baker = word (Baker, 1))
 ```
 
 ```{r}
 # Check the not matching one
 
-resultbakernumber<- anti_join(results_df, bakers_df, by = c("Series", "Baker")) |>
+resultbakernumber<- anti_join(results_df, bakers_df, by = c("Series", "Baker")) %>%
   nrow()
 
 print(resultbakernumber)
 
-bakerresultnumber <- anti_join(bakers_df, results_df, by = c("Series", "Baker")) |>
+bakerresultnumber <- anti_join(bakers_df, results_df, by = c("Series", "Baker")) %>%
   nrow()
 
 print(bakerresultnumber)
+
 ```
 
 ```{r}
 # Merge the bakers and the results
+bakers_results <- bakers_df %>%
+  left_join(results_df, by = c("Series", "Baker"))
 
+# before merging the bakes and the baker results, checking the not match ones
+mb_number <- anti_join(bakers_results, bakes_df, by = c("Series", "Episode", "Baker")) %>%
+  nrow()
+
+print(mb_number)
+
+bm_number <- anti_join(bakes_df, bakers_results, by = c("Series", "Episode", "Baker")) %>%
+  nrow()
+
+print(bm_number)
+
+# Then merge a final data set
+
+final_data <- bakers_results %>%
+  left_join(bakes_df, by = c("Series", "Episode", "Baker")) %>%
+  select(Series,Episode,Baker, "Baker Age", "Baker Occupation", Hometown, 
+         "Signature Bake", "Show Stopper", Technical, Result)
+  
+View(final_data)
 
 ```
 
+```{r}
+# Export the final data set as a CVS
+   write.csv(final_data, "final_data.csv", row.names = FALSE)
+```
+
+During the data cleaning process, I set new column names and removed the first two rows of information in result_df. Then, I transformed the types of the data in these sets to make them consistent. The final_data shows all the bakers who have attended the Great British Bake Off. Through this data set, we can easily get the information of these bakers, such as their series, episode, names,age,occupations, hometown, signature bake, show stoppers, technical and results.
+
+
+```{r}
+# find the winner
+starbakers_winners <- final_data %>%
+  filter(Series %in% c("5", "6", "7", "8", "9", "10") & 
+         Result %in% c("STAR BAKER", "WINNER")) %>%
+  select(Series,Episode,Baker, "Baker Age", "Baker Occupation", Hometown, "Signature Bake", "Show Stopper", Technical, Result)
+
+winners <- starbakers_winners %>%
+  filter(Result == "WINNER")
+
+View(winners)
+```
+Most of the winners are in their 30s, expect for Nancy. Additionally, all of them have up to 2 technical.
+
+```{r}
+# 10 rows of viewers and calculate the average
+viewers <- read_csv("viewers.csv", col_types = cols('Series 1' = col_number(), 
+    'Series 5' = col_number()))
+
+head(viewers, 10)
+
+mean_series1 <- mean(viewers$"Series 1", na.rm = TRUE)
+mean_series5 <- mean(viewers$"Series 5", na.rm = TRUE)
+
+print(mean_series1)
+print(mean_series5)
+
+```
+The average viewership in Series 1 is 2.77, and for Series 5 is 10,0393.
