@@ -2,7 +2,7 @@
 title: "HW2"
 author: "Vivian Xia"
 date: "2024-09-30"
-output: pdf_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -26,7 +26,7 @@ cleaned_data <- data %>%
   mutate(Entry = ifelse(Entry == "YES", TRUE, FALSE))
 
 # View the data
-View(cleaned_data)
+cleaned_data
 ```
 
 The dataset provides details about NYC subway entrances and exits. Key variables include:Line (Subway line), Station Name(Name of the subway station), Station Latitude/Longitude(Geographical coordinates of the station), Routes Served (Route1 to Route11), Entry(Logical variable indicating whether entry is allowed at a specific entrance), Vending(Indicates whether there are vending machines at the entrance),Entrance Type(e.g. staircase, elevator), ADA(Whether the entrance is ADA-compliant)
@@ -76,7 +76,7 @@ routes_data <- routes_data %>%
   filter(!is.na(Route))
 
 # Check the reformatted data
-View(routes_data)
+routes_data
 ```
 
 ```{r}
@@ -125,7 +125,7 @@ mr_trash_wheel_cleaned <- mr_trash_wheel %>%
   # transfer year to numerical character
   mutate(Year = as.numeric(Year))
 
-View(mr_trash_wheel_cleaned)
+ mr_trash_wheel_cleaned
 ```
 
 
@@ -160,7 +160,7 @@ all_trash_wheel_data <- bind_rows(mr_trash_wheel_cleaned,
                                   gwynnda_cleaned)
 
 # Check the combined data set
-View(all_trash_wheel_data)
+all_trash_wheel_data
 ```
 
 The `all_trash_wheel_data` combines the data from three different trash wheels of Healthy Harbor company from the year 2014 to 2024, if data is available. The data includes the number of Dumpster, Month, Year, Date, weight, volumes, different categories of trash collected, and homes powered. 
@@ -214,9 +214,9 @@ bakers_df <- bakers_df %>%
   mutate(Series = as.numeric(Series)) %>%
   mutate(Baker = ifelse(Baker == 'Joanne', 'Jo', Baker)) 
 
-View(bakers_df)
-View(bakes_df)
-View(results_df)
+bakers_df
+bakes_df
+results_df
 ```
 
 
@@ -264,7 +264,7 @@ final_data <- bakers_results %>%
   select(Series,Episode,Baker, "Baker Age", "Baker Occupation", Hometown, 
          "Signature Bake", "Show Stopper", Technical, Result)
   
-View(final_data)
+final_data
 
 ```
 
@@ -281,12 +281,13 @@ During the data cleaning process, I set new column names and removed the first t
 starbakers_winners <- final_data %>%
   filter(Series %in% c("5", "6", "7", "8", "9", "10") & 
          Result %in% c("STAR BAKER", "WINNER")) %>%
-  select(Series,Episode,Baker, "Baker Age", "Baker Occupation", Hometown, "Signature Bake", "Show Stopper", Technical, Result)
+  select(Series,Episode,Baker, "Baker Age", "Baker Occupation", Hometown, 
+         "Signature Bake", "Show Stopper", Technical, Result)
 
 winners <- starbakers_winners %>%
   filter(Result == "WINNER")
 
-View(winners)
+winners
 ```
 Most of the winners are in their 30s, expect for Nancy. Additionally, all of them have up to 2 technical.
 
